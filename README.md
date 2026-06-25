@@ -1,1 +1,2 @@
-# Case-Study-2---Individual-Work
+Kendise Quartey 42432028
+Individual Case Study Work

@@ -1,0 +1,147 @@
+Creating the tables:
+Employee table:
+MariaDB [project_schema]>create table Employee (empNo int primary key, fName varchar (20), lName varchar (20), address varchar (50), DOB date, sex ENUM('M' ,'F'), position ENUM ('Manager', 'Team Leader', 'Analyst', 'Software Developer'),deptNo int);
+Query OK, 0 rows affected (0.078 sec)
+
+MariaDB [project_schema]> select * from Employee;
++-------+---------+--------+------------+------------+------+--------------------+--------+
+| empNo | fName   | lName  | address    | DOB        | sex  | position           | deptNo |
++-------+---------+--------+------------+------------+------+--------------------+--------+
+|     1 | John    | Smith  | London     | 1990-01-10 | M    | Manager            |      1 |
+|     2 | Emma    | Brown  | Manchester | 1992-03-15 | F    | Team Leader        |      1 |
+|     3 | Michael | Lee    | Birmingham | 1995-06-20 | M    | Analyst            |      2 |
+|     4 | Sarah   | White  | Leeds      | 1993-09-12 | F    | Software Developer |      2 |
+|     5 | David   | Green  | Liverpool  | 1991-11-05 | M    | Analyst            |      3 |
+|     6 | Anna    | Taylor | London     | 1994-02-18 | F    | Software Developer |      3 |
+|     7 | James   | Wilson | Oxford     | 1989-07-22 | M    | Manager            |      4 |
+|     8 | Sophia  | Moore  | Cambridge  | 1996-12-30 | F    | Team Leader        |      4 |
+|     9 | Daniel  | Clark  | Bristol    | 1997-04-09 | M    | Analyst            |      1 |
+|    10 | Olivia  | Hall   | York       | 1995-08-14 | F    | Software Developer |      2 |
++-------+---------+--------+------------+------------+------+--------------------+--------+
+
+Department table:
+MariaDB [project_schema]>create table Department (deptNo int primary key, deptName varchar (30), mgrEmpNo int, foreign key (mgrEmpNo) references Employee(empNo));
+Query OK, 0 rows affected (0.016 sec)
+
+
+MariaDB [project_schema]> select * from Department;
++--------+-------------+----------+
+| deptNo | deptName    | mgrEmpNo |
++--------+-------------+----------+
+|      1 | IT          |        1 |
+|      2 | HR          |        2 |
+|      3 | Finance     |        7 |
+|      4 | Marketing   |        8 |
+|      5 | Operations  |        1 |
+|      6 | Support     |        2 |
+|      7 | Research    |        7 |
+|      8 | Development |        8 |
+|      9 | Security    |        1 |
+|     10 | Admin       |        2 |
++--------+-------------+----------+
+
+Project table:
+MariaDB [project_schema]>create table Project (projNo int primary key, projName varchar(30), deptNo int, foreign key (deptNo) references Department(deptNo));
+Query OK, 0 rows affected (0.018 sec)
+
+MariaDB [project_schema]> select * from Project;
++--------+------------------------+--------+
+| projNo | projName               | deptNo |
++--------+------------------------+--------+
+|      1 | Payroll System         |      1 |
+|      2 | Recruitment Portal     |      2 |
+|      3 | Banking App            |      3 |
+|      4 | Ad Campaign            |      4 |
+|      5 | Logistics System       |      5 |
+|      6 | Helpdesk Tool          |      6 |
+|      7 | AI Research            |      7 |
+|      8 | Mobile App             |      8 |
+|      9 | Cyber Security Upgrade |      9 |
+|     10 | Office Automation      |     10 |
++--------+------------------------+--------+
+
+WorksOn table:
+MariaDB [project_schema]>create table WorksOn ( empNo int, projNo int, dateWorked date, hoursWorked int check( hoursWorked between 0 and 40), primary key (empNo, projNo,dateWorked), foreign key (empNo) references Employee (empNo), foreign key (projNo) references Project (projNo));
+Query OK, 0 rows affected (0.020 sec)
+
+
+MariaDB [project_schema]> select * from WorksOn;
++-------+--------+------------+-------------+
+| empNo | projNo | dateWorked | hoursWorked |
++-------+--------+------------+-------------+
+|     1 |      1 | 2026-06-01 |           8 |
+|     2 |      2 | 2026-06-02 |           6 |
+|     3 |      3 | 2026-06-03 |           7 |
+|     4 |      4 | 2026-06-04 |           5 |
+|     5 |      5 | 2026-06-05 |           9 |
+|     6 |      6 | 2026-06-06 |           4 |
+|     7 |      7 | 2026-06-07 |           8 |
+|     8 |      8 | 2026-06-08 |           6 |
+|     9 |      9 | 2026-06-09 |           7 |
+|    10 |     10 | 2026-06-10 |           5 |
++-------+--------+------------+-------------+
+
+
+MariaDB [project_schema]> show tables;
+Output:
++--------------------------+
+| Tables_in_project_schema |
++--------------------------+
+| department               |
+| employee                 |
+| project                  |
+| workson                  |
++--------------------------+
+4 rows in set (0.016 sec)
+
+7.25
+MariaDB [project_schema]> create view projects_managed_by_females as select p.projNo, p.projName from project p join department d on p.deptNo = d.deptNo join employee e on d.mgrEmpNo = e.empNo where e.sex = 'F' order by p.projNo;
+Query OK, 0 rows affected (0.014 sec)
+
+SELECT * FROM projects_managed_by_females;
++--------+--------------------+
+| projNo | projName           |
++--------+--------------------+
+|      2 | Recruitment Portal |
+|      4 | Ad Campaign        |
+|      6 | Helpdesk Tool      |
+|      8 | Mobile App         |
+|     10 | Office Automation  |
++--------+--------------------+
+5 rows in set (0.011 sec)
+
+7.26
+create view view_2 as select e.empNo, e.fName,e.lName,w.hoursWorked,w.projNo from Employee e join WorksOn w on e.empNo = w.empNo;
+Query OK, 0 rows affected (0.011 sec)
+
+MariaDB [project_schema]> select * from view_2;
++-------+---------+--------+-------------+--------+
+| empNo | fName   | lName  | hoursWorked | projNo |
++-------+---------+--------+-------------+--------+
+|     1 | John    | Smith  |           8 |      1 |
+|     2 | Emma    | Brown  |           6 |      2 |
+|     3 | Michael | Lee    |           7 |      3 |
+|     4 | Sarah   | White  |           5 |      4 |
+|     5 | David   | Green  |           9 |      5 |
+|     6 | Anna    | Taylor |           4 |      6 |
+|     7 | James   | Wilson |           8 |      7 |
+|     8 | Sophia  | Moore  |           6 |      8 |
+|     9 | Daniel  | Clark  |           7 |      9 |
+|    10 | Olivia  | Hall   |           5 |     10 |
++-------+---------+--------+-------------+--------+
+10 rows in set (0.001 sec)
+
+7.27
+CREATE VIEW EmpProject (empNo, projNo, totalHours) as select w.empNo,w.projNo, SUM(w.hoursWorked) as totalHours from WorksOn w join Employee e ON e.empNo = w.empNo join Project p onp.projNo = w.projNo GROUP by w.empNo, w.projNo;
+
+a) This displays all the  EmpProject table
+
+b) This selects the projNo values from EmpProj where the projNo is equal to SCCS and displays it
+
+c)This displays the number of rows in the projNo column where the employee number is E1 in the EmpProject table
+
+d) This is invalid because the total hours are neither included in the group by clause nor aggregated by using sum, avg, etc.
+
+
+
+
